@@ -3,18 +3,19 @@ package main
 import (
     "log"
     "net"
+    "os"
     // "time"
 )
 
 func CheckError(err error) {
     if err  != nil {
-        fmt.Println("Error: " , err)
+        log.Println("Error: " , err)
         os.Exit(0)
     }
 }
 
 func ListenForConnections(done chan bool) {
-    local, err := net.ResolveTCPAddr("tcp", ":12345")
+    local, err := net.ResolveTCPAddr("tcp", ":20010")
     CheckError(err)
 
     listener, err := net.ListenTCP("tcp", local)
@@ -22,18 +23,20 @@ func ListenForConnections(done chan bool) {
 
     conn, err := listener.AcceptTCP()
     CheckError(err)
+    buffer := make([]byte, 1024)
+    conn.Read(buffer)
+    log.Println(buffer)
 
-    log.Println(conn.RemoteAddr(), "connected to arbeidsplass 12!")
+    log.Println(conn.RemoteAddr(), "connected to arbeidsplass 10!")
     conn.Close()
     done <- true
 }
 
 func main() {
-    remote, err := net.ResolveTCPAddr("tcp", "129.241.187.136:33546")
+    conn, err := net.Dial("tcp", "129.241.187.23:33546")
+    log.Println("test")
     CheckError(err)
-
-    conn, err := net.DialTCP("tcp", nil, remote)
-    CheckError(err)
+    log.Println("test2")
 
     buffer := make([]byte, 1024)
     bytes_read, err := conn.Read(buffer)
@@ -44,14 +47,7 @@ func main() {
     done := make(chan bool)
     go ListenForConnections(done)
 
-    // Fixed size message sending: Use port 34933 in remote
-    // msg := "Connect to: 129.241.187.144:12345"
-    // data := make([]byte, 1024)
-    // copy(data[:], msg)
-    // bytes_sent, err := conn.Write(data)
-
-    // Variable size messages, use port 33546 in remote
-    bytes_sent, err := conn.Write([]byte("Connect to: 129.241.187.144:12345"))
+    bytes_sent, err := conn.Write([]byte("Connect to: 129.241.187.158:20010\x00"))
     conn.Write([]byte{0})
     CheckError(err)
 
