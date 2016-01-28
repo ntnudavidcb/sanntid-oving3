@@ -20,7 +20,7 @@ func CheckError(err error) {
  
 func main() {
     /* Lets prepare a address at any address at port 30000*/   
-    ServerAddr,err := net.ResolveUDPAddr("udp","127.0.0.1:30000")
+    ServerAddr,err := net.ResolveUDPAddr("udp",":30000")
     CheckError(err)
  
     fmt.Println("ServerAddr: ", ServerAddr)

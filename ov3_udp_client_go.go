@@ -10,17 +10,16 @@ import (
     // "fmt"
 )
 
-func ListenThing(conn *net.UDPConn, read_channel chan int) {
+func ListenThing(conn *net.UDPConn, read_channel chan []byte) {
     for {
         data := make([]byte, 1024)
         log.Println("Attempt read")
-        read_bytes, _, err := conn.ReadFromUDP(data)
+        _, _, err := conn.ReadFromUDP(data)
         if err != nil {
             log.Fatal(err)
         }
-        read_channel <- read_bytes
-        // read_channel <- fmt.Sprintf("Read %d bytes from %q", read_bytes, sender)
-        // log.Println("Read", read_bytes, "bytes from", sender)
+        read_channel <- data
+
     }
 }
 
@@ -38,25 +37,26 @@ func WriteThing(conn *net.UDPConn) {
 
 func main() {
     // Listen for data through this address:port
-    local, err :=  net.ResolveUDPAddr("udp", "127.0.0.1:63303")
+    local, err :=  net.ResolveUDPAddr("udp4", ":20010")
+    conn2, err := net.ListenUDP("udp4", local)
     if err != nil {
         log.Fatal(err)
     }
 
     // Send data to this address:port (broadcast address)
-    remote, err := net.ResolveUDPAddr("udp", "127.0.0.1:30000")
+    remote, err := net.ResolveUDPAddr("udp4","129.241.187.23:20010")
     if err != nil {
         log.Fatal(err)
     }
 
-    conn, err := net.DialUDP("udp", local, remote)
+    conn, err := net.DialUDP("udp4", nil, remote)
     if err != nil {
         log.Fatal(err)
     }
 
-    read_channel := make(chan int)
+    read_channel := make(chan []byte)
 
-    go ListenThing(conn, read_channel)
+    go ListenThing(conn2, read_channel)
     go WriteThing(conn)
 
     for {
